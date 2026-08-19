@@ -1,23 +1,23 @@
-{
-    "name": "nxtey/laravel-sso-client",
-    "description": "Centralized SSO Client for Nxtey Network using Laravel Socialite",
-    "type": "library",
-    "license": "MIT",
-    "autoload": {
-        "psr-4": {
-            "Nxtey\\SsoClient\\": "src/"
-        }
-    },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "Nxtey\\SsoClient\\SsoClientServiceProvider"
-            ]
-        }
-    },
-    "require": {
-        "php": "^8.1",
-        "illuminate/support": "^10.0|^11.0",
-        "laravel/socialite": "^5.0"
-    }
-}
+   {
+       "name": "nxtey/laravel-sso-client",
+       "description": "Centralized SSO Client for Nxtey Network using Laravel Socialite",
+       "type": "library",
+       "license": "MIT",
+       "autoload": {
+           "psr-4": {
+               "Nxtey\\SsoClient\\": "src/"
+           }
+       },
+       "extra": {
+           "laravel": {
+               "providers": [
+                   "Nxtey\\SsoClient\\SsoClientServiceProvider"
+               ]
+           }
+       },
+       "require": {
+           "php": "^8.1",
+           "illuminate/support": "^10.0|^11.0",
+           "laravel/socialite": "^5.0"
+       }
+   }
