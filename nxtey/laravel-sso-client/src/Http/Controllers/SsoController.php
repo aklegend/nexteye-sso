@@ -33,7 +33,6 @@ class SsoController extends Controller
     public function callback(Request $request)
     {
         try {
-            // 1. Get user payload from central server
             $socialiteUser = Socialite::driver('nxtey')->user();
         } catch (Throwable $e) {
             Log::error('Nxtey SSO Callback Failed: ' . $e->getMessage());
@@ -41,30 +40,30 @@ class SsoController extends Controller
         }
 
         try {
-            // 2. Dynamically resolve the local User model to ensure compatibility with any third-party script
             $userModel = Auth::guard()->getProvider()->getModel();
+            $userTable = (new $userModel)->getTable();
+            
+            // Dynamically check if the column exists to prevent SQL errors on diverse third-party apps
+            $hasVerifiedAt = \Illuminate\Support\Facades\Schema::hasColumn($userTable, 'email_verified_at');
 
-            // 3. Update or create the user locally
-            // We generate a cryptographically secure random password to prevent local password login,
-            // forcing all authentication through the SSO gateway.
+            $payload = [
+                'name' => $socialiteUser->getName() ?: $socialiteUser->getNickname() ?: 'SSO User',
+                'password' => Hash::make(Str::random(32)), 
+            ];
+
+            if ($hasVerifiedAt) {
+                $payload['email_verified_at'] = now();
+            }
+
             $user = $userModel::updateOrCreate(
                 ['email' => $socialiteUser->getEmail()],
-                [
-                    'name' => $socialiteUser->getName() ?: $socialiteUser->getNickname() ?: 'SSO User',
-                    'password' => Hash::make(Str::random(32)), 
-                    'email_verified_at' => now(), // SSO implies the email is verified by the central authority
-                ]
+                $payload
             );
 
-            // 4. Log the user into the local application
-            Auth::login($user, true); // true = remember me
-
-            // 5. Regenerate session to prevent session fixation attacks
+            Auth::login($user, true);
             Session::regenerate();
 
-            // 6. Redirect to the configured dashboard or home
-            $redirectPath = config('nxtey-sso.login_redirect_path', '/dashboard');
-            return redirect()->intended($redirectPath);
+            return redirect()->intended(config('nxtey-sso.login_redirect_path', '/dashboard'));
 
         } catch (Throwable $e) {
             Log::error('Nxtey SSO Local Provisioning Failed: ' . $e->getMessage());
