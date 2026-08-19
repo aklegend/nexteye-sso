@@ -16,6 +16,13 @@ class SsoClientServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Register Console Commands
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                InstallCommand::class,
+            ]);
+        }
+        
         // Publish configuration
         $this->publishes([
             __DIR__ . '/../config/nxtey-sso.php' => config_path('nxtey-sso.php'),
@@ -34,9 +41,6 @@ class SsoClientServiceProvider extends ServiceProvider
                 ]
             );
         });
-        if ($this->app->runningInConsole()) {
-        $this->commands([\Nxtey\SsoClient\Console\InstallCommand::class]);
-        }
         // Load Package Routes
         $this->loadRoutesFrom(__DIR__ . '/routes/web.php');
     }
