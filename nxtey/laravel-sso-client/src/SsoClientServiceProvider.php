@@ -34,7 +34,9 @@ class SsoClientServiceProvider extends ServiceProvider
                 ]
             );
         });
-
+        if ($this->app->runningInConsole()) {
+        $this->commands([\Nxtey\SsoClient\Console\InstallCommand::class]);
+        }
         // Load Package Routes
         $this->loadRoutesFrom(__DIR__ . '/routes/web.php');
     }
