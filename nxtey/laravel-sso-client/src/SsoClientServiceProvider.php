@@ -4,6 +4,7 @@ namespace Nxtey\SsoClient;
 
 use Illuminate\Support\ServiceProvider;
 use Laravel\Socialite\Facades\Socialite;
+use Nxtey\SsoClient\Console\InstallCommand;
 
 class SsoClientServiceProvider extends ServiceProvider
 {
@@ -16,19 +17,16 @@ class SsoClientServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Register Console Commands
         if ($this->app->runningInConsole()) {
             $this->commands([
                 InstallCommand::class,
             ]);
         }
-        
-        // Publish configuration
+
         $this->publishes([
             __DIR__ . '/../config/nxtey-sso.php' => config_path('nxtey-sso.php'),
         ], 'nxtey-sso-config');
 
-        // Register Custom Socialite Driver
         Socialite::extend('nxtey', function ($app) {
             $config = $app['config']['nxtey-sso'];
             
@@ -41,7 +39,7 @@ class SsoClientServiceProvider extends ServiceProvider
                 ]
             );
         });
-        // Load Package Routes
+
         $this->loadRoutesFrom(__DIR__ . '/routes/web.php');
     }
 }
