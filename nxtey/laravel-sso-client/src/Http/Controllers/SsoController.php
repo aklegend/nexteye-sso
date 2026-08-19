@@ -30,46 +30,46 @@ class SsoController extends Controller
     /**
      * Obtain the user information from Nxtey SSO and authenticate locally.
      */
-    public function callback(Request $request)
-    {
-        try {
-            $socialiteUser = Socialite::driver('nxtey')->user();
-        } catch (Throwable $e) {
-            Log::error('Nxtey SSO Callback Failed: ' . $e->getMessage());
-            return redirect()->route('login')->withErrors(['sso' => 'SSO authentication failed or was denied.']);
-        }
-
-        try {
-            $userModel = Auth::guard()->getProvider()->getModel();
-            $userTable = (new $userModel)->getTable();
-            
-            // Dynamically check if the column exists to prevent SQL errors on diverse third-party apps
-            $hasVerifiedAt = \Illuminate\Support\Facades\Schema::hasColumn($userTable, 'email_verified_at');
-
-            $payload = [
-                'name' => $socialiteUser->getName() ?: $socialiteUser->getNickname() ?: 'SSO User',
-                'password' => Hash::make(Str::random(32)), 
-            ];
-
-            if ($hasVerifiedAt) {
-                $payload['email_verified_at'] = now();
+        public function callback(Request $request)
+        {
+            try {
+                $socialiteUser = Socialite::driver('nxtey')->user();
+            } catch (Throwable $e) {
+                Log::error('Nxtey SSO Callback Failed: ' . $e->getMessage());
+                return redirect()->route('login')->withErrors(['sso' => 'SSO authentication failed or was denied.']);
             }
-
-            $user = $userModel::updateOrCreate(
-                ['email' => $socialiteUser->getEmail()],
-                $payload
-            );
-
-            Auth::login($user, true);
-            Session::regenerate();
-
-            return redirect()->intended(config('nxtey-sso.login_redirect_path', '/dashboard'));
-
-        } catch (Throwable $e) {
-            Log::error('Nxtey SSO Local Provisioning Failed: ' . $e->getMessage());
-            return redirect()->route('login')->withErrors(['sso' => 'An error occurred while provisioning your local account.']);
+    
+            try {
+                $userModel = Auth::guard()->getProvider()->getModel();
+                $userTable = (new $userModel)->getTable();
+                
+                // Dynamically check if the column exists to prevent SQL errors on diverse third-party apps
+                $hasVerifiedAt = \Illuminate\Support\Facades\Schema::hasColumn($userTable, 'email_verified_at');
+    
+                $payload = [
+                    'name' => $socialiteUser->getName() ?: $socialiteUser->getNickname() ?: 'SSO User',
+                    'password' => Hash::make(Str::random(32)), 
+                ];
+    
+                if ($hasVerifiedAt) {
+                    $payload['email_verified_at'] = now();
+                }
+    
+                $user = $userModel::updateOrCreate(
+                    ['email' => $socialiteUser->getEmail()],
+                    $payload
+                );
+    
+                Auth::login($user, true);
+                Session::regenerate();
+    
+                return redirect()->intended(config('nxtey-sso.login_redirect_path', '/dashboard'));
+    
+            } catch (Throwable $e) {
+                Log::error('Nxtey SSO Local Provisioning Failed: ' . $e->getMessage());
+                return redirect()->route('login')->withErrors(['sso' => 'An error occurred while provisioning your local account.']);
+            }
         }
-    }
 
     /**
      * Log the user out locally and redirect to central SSO logout.
