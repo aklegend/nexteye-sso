@@ -86,18 +86,6 @@ protected $middlewareAliases = [
     'admin' => \Nxtey\SsoServer\Http\Middleware\EnsureIsAdmin::class,
 ];
 
-Step 7: Configure Passport in AppServiceProvider
-In app/Providers/AppServiceProvider.php:
-use Laravel\Passport\Passport;
-
-public function boot(): void
-{
-    Passport::tokensExpireIn(now()->addDay());
-    Passport::refreshTokensExpireIn(now()->addDays(30));
-    Passport::personalAccessTokensExpireIn(now()->addDays(30));
-    Passport::routes();
-}
-
 Step 8: Configure the API Guard
 In config/auth.php:
 

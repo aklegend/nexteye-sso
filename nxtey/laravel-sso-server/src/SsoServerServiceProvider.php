@@ -14,6 +14,15 @@ class SsoServerServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // 1. Enforce strict, short-lived cryptographic tokens
+        Passport::tokensExpireIn(now()->addHour());          // Shortened from 1 day to 1 hour for security
+        Passport::refreshTokensExpireIn(now()->addDays(14)); // Shortened from 30 days to 14 days
+        Passport::personalAccessTokensExpireIn(now()->addDays(7));
+
+        // 2. Enforce strict PKCE (Proof Key for Code Exchange) for your subdomains
+        // This stops authorization code interception attacks on subdomains
+        Passport::enablePkceProtection();
+        
         if ($this->app->runningInConsole()) {
             $this->commands([InstallCommand::class]);
             
