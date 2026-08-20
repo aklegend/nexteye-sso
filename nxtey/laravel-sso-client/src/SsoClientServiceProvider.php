@@ -27,19 +27,35 @@ class SsoClientServiceProvider extends ServiceProvider
             __DIR__ . '/../config/nxtey-sso.php' => config_path('nxtey-sso.php'),
         ], 'nxtey-sso-config');
 
-        Socialite::extend('nxtey', function ($app) {
-            $config = $app['config']['nxtey-sso'];
-            
-            return Socialite::buildProvider(
-                NxteySocialiteProvider::class,
-                [
-                    'client_id' => $config['client_id'],
-                    'client_secret' => $config['client_secret'],
-                    'redirect' => $config['redirect_uri'],
-                ]
-            );
-        });
-
+        // 2. Load automatic routing arrays
         $this->loadRoutesFrom(__DIR__ . '/routes/web.php');
+         // 3. Register your views folder for the UI interceptor element
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'nxtey-sso');
+
+        // 4. Inject your custom OAuth2 handler engine cleanly into Socialite
+        if ($this->app->bound(\Laravel\Socialite\Contracts\Factory::class)) {
+            $socialite = $this->app->make(\Laravel\Socialite\Contracts\Factory::class);
+            
+            $socialite->extend('nxtey', function ($app) use ($socialite) {
+                $config = $app['config']['nxtey-sso'];
+                return $socialite->buildProvider(
+                    \Nxtey\SsoClient\NxteySocialiteProvider::class, 
+                    $config
+                );
+            });
+        }
+
+        // Socialite::extend('nxtey', function ($app) {
+        //     $config = $app['config']['nxtey-sso'];
+            
+        //     return Socialite::buildProvider(
+        //         NxteySocialiteProvider::class,
+        //         [
+        //             'client_id' => $config['client_id'],
+        //             'client_secret' => $config['client_secret'],
+        //             'redirect' => $config['redirect_uri'],
+        //         ]
+        //     );
+        // });
     }
 }
